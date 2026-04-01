@@ -14,11 +14,6 @@
   <a href="https://pypi.org/project/devit-cli/"><img src="https://img.shields.io/pypi/l/devit-cli.svg" alt="License"/></a>
 </p>
 
-<p align="center">
-  <a href="https://pepy.tech/project/devit-cli"><img src="https://static.pepy.tech/badge/devit-cli" alt="Total downloads"/></a>
-  <a href="https://pepy.tech/project/devit-cli"><img src="https://static.pepy.tech/badge/devit-cli/month" alt="Monthly"/></a>
-  <a href="https://pepy.tech/project/devit-cli"><img src="https://static.pepy.tech/badge/devit-cli/week" alt="Weekly"/></a>
-</p>
 
 ---
 
