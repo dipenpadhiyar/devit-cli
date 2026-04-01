@@ -1,21 +1,22 @@
-# {{project_name}}
+﻿# {{project_name}}
 
-FastAPI backend — scaffolded with **devkit-cli**
+FastAPI backend â€” scaffolded with **devit-cli**
 
 ## Run (dev)
 
 ```bash
-devkit dev
+devit dev
 ```
 
 ## Run (production)
 
 ```bash
-devkit run
+devit run
 ```
 
 ## Test
 
 ```bash
-devkit test
+devit test
 ```
+

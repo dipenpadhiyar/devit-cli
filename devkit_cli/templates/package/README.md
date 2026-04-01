@@ -1,6 +1,6 @@
-# {{project_name}}
+﻿# {{project_name}}
 
-> Created with **devkit-cli**
+> Created with **devit-cli**
 
 ## Install
 
@@ -11,5 +11,6 @@ pip install -e ".[dev]"
 ## Test
 
 ```bash
-devkit test
+devit test
 ```
+

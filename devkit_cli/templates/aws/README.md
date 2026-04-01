@@ -1,23 +1,24 @@
-# {{project_name}}
+﻿# {{project_name}}
 
-AWS automation scripts — scaffolded with **devkit-cli**
+AWS automation scripts â€” scaffolded with **devit-cli**
 
 ## Setup
 
 ```bash
-devkit build       # installs requirements
+devit build       # installs requirements
 aws configure      # configure your AWS credentials
 ```
 
 ## Run
 
 ```bash
-devkit run list-buckets
-devkit run list-instances
+devit run list-buckets
+devit run list-instances
 ```
 
 ## Test
 
 ```bash
-devkit test
+devit test
 ```
+

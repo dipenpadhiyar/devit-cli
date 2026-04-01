@@ -1,11 +1,11 @@
-# {{project_name}}
+﻿# {{project_name}}
 
-Django project — scaffolded with **devkit-cli**
+Django project â€” scaffolded with **devit-cli**
 
 ## Dev server
 
 ```bash
-devkit dev
+devit dev
 ```
 
 ## Run migrations
@@ -13,3 +13,4 @@ devkit dev
 ```bash
 .venv/Scripts/python manage.py migrate
 ```
+
