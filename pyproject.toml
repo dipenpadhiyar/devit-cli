@@ -1,0 +1,62 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "devit-cli"
+version = "0.1.0"
+description = "A full-featured CLI framework for professional Python developers"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+keywords = ["cli", "developer-tools", "scaffold", "devkit"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "click>=8.1",
+    "rich>=13.0",
+    "psutil>=5.9",
+    "questionary>=2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-click>=1.1",
+    "black>=24.0",
+    "ruff>=0.4",
+]
+
+[project.scripts]
+devkit = "_devkit_entry:main"
+
+[project.urls]
+Homepage = "https://github.com/dipenpadhiyar/devit-cli"
+Issues = "https://github.com/dipenpadhiyar/devit-cli/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["devkit_cli*"]
+
+[tool.setuptools]
+py-modules = ["_devkit_entry"]
+
+[tool.setuptools.package-data]
+"devkit_cli.templates" = ["**/*", "**/.*"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "I"]
