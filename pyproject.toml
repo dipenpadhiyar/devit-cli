@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "devit-cli"
-version = "0.1.1"
+version = "0.1.2"
 description = "A full-featured CLI framework for professional Python developers"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -37,7 +37,7 @@ dev = [
 ]
 
 [project.scripts]
-devkit = "_devkit_entry:main"
+devit = "_devkit_entry:main"
 
 [project.urls]
 Homepage = "https://github.com/dipenpadhiyar/devit-cli"

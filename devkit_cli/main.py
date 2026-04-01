@@ -34,37 +34,37 @@ class _DevkitGroup(click.Group):
                 console.print(
                     f"[red]Error:[/red] No such command [bold]'{cmd_name}'[/bold].\n"
                     f"       Did you mean [bold green]{suggestions[0]}[/bold green]?\n\n"
-                    f"Run [bold]devkit --help[/bold] to see all available commands."
+                    f"Run [bold]devit --help[/bold] to see all available commands."
                 )
             else:
                 console.print(
                     f"[red]Error:[/red] No such command [bold]'{cmd_name}'[/bold].\n\n"
-                    f"Run [bold]devkit --help[/bold] to see all available commands."
+                    f"Run [bold]devit --help[/bold] to see all available commands."
                 )
             sys.exit(2)
 
 LOGO = """
 [bold cyan]
-  ██████╗ ███████╗██╗   ██╗██╗  ██╗██╗████████╗
-  ██╔══██╗██╔════╝██║   ██║██║ ██╔╝██║╚══██╔══╝
-  ██║  ██║█████╗  ██║   ██║█████╔╝ ██║   ██║   
-  ██║  ██║██╔══╝  ╚██╗ ██╔╝██╔═██╗ ██║   ██║   
-  ██████╔╝███████╗ ╚████╔╝ ██║  ██╗██║   ██║   
-  ╚═════╝ ╚══════╝  ╚═══╝  ╚═╝  ╚═╝╚═╝   ╚═╝  
+  ██████╗ ███████╗██╗   ██╗██╗████████╗
+  ██╔══██╗██╔════╝██║   ██║██║╚══██╔══╝
+  ██║  ██║█████╗  ██║   ██║██║   ██║   
+  ██║  ██║██╔══╝  ╚██╗ ██╔╝██║   ██║   
+  ██████╔╝███████╗ ╚████╔╝ ██║   ██║   
+  ╚═════╝ ╚══════╝  ╚═══╝  ╚═╝   ╚═╝   
 [/bold cyan]
 [dim]  Professional Developer CLI Toolkit  v{version}[/dim]
 """
 
 
 @click.group(cls=_DevkitGroup, invoke_without_command=True, context_settings={"help_option_names": ["-h", "--help"]})
-@click.version_option(__version__, "-v", "--version", message="devkit-cli %(version)s")
+@click.version_option(__version__, "-v", "--version", message="devit %(version)s")
 @click.pass_context
 def cli(ctx: click.Context) -> None:
     """
     \b
-    devkit-cli — A full-featured CLI framework for professional developers.
+    devit — A full-featured CLI framework for professional developers.
 
-    Run `devkit COMMAND --help` for details on any command.
+    Run `devit COMMAND --help` for details on any command.
     """
     if ctx.invoked_subcommand is None:
         console.print(LOGO.format(version=__version__))

@@ -1,5 +1,5 @@
 ﻿<p align="center">
-  <img src="https://raw.githubusercontent.com/dipenpadhiyar/devit-cli/main/assets/devkit.png" alt="devit-cli" width="300"/>
+  <img src="https://raw.githubusercontent.com/dipenpadhiyar/devit-cli/main/assets/devit.png" alt="devit-cli" width="300"/>
 </p>
 
 <p align="center">
@@ -30,19 +30,19 @@ Requires **Python 3.10+**. Works on **Windows · Linux · macOS**.
 ## Quick Start
 
 ```bash
-devkit           # show help + logo
-devkit init      # interactive project wizard
-devkit info      # system snapshot
-devkit clean     # remove caches & build artifacts
-devkit dev       # start dev server / install in dev mode
-devkit test      # run tests (auto-detects pytest / django)
+devit           # show help + logo
+devit init      # interactive project wizard
+devit info      # system snapshot
+devit clean     # remove caches & build artifacts
+devit dev       # start dev server / install in dev mode
+devit test      # run tests (auto-detects pytest / django)
 ```
 
 ---
 
 ## Commands
 
-### `devkit init` — Project wizard
+### `devit init` — Project wizard
 
 Interactively scaffold a new project. Asks for:
 
@@ -53,10 +53,10 @@ Interactively scaffold a new project. Asks for:
 | Python version | e.g. `3.11` |
 
 ```bash
-devkit init                          # fully interactive
-devkit init my-api --type fastapi --env venv
-devkit init my-lib --type package --env conda --python 3.12
-devkit init my-app -y                # skip confirmation prompt
+devit init                          # fully interactive
+devit init my-api --type fastapi --env venv
+devit init my-lib --type package --env conda --python 3.12
+devit init my-app -y                # skip confirmation prompt
 ```
 
 #### Generated structures
@@ -119,88 +119,88 @@ my-aws/
 
 ---
 
-### `devkit dev / run / build / test` — Unified task runner
+### `devit dev / run / build / test` — Unified task runner
 
 Auto-detects project type and runs the right command:
 
 | Command | Package | FastAPI | Django | AWS |
 |---|---|---|---|---|
-| `devkit dev` | `pip install -e .[dev]` | `uvicorn main:app --reload` | `manage.py runserver` | `sam local start-api` |
-| `devkit run` | `python -m <module>` | `uvicorn main:app` | `manage.py runserver 0.0.0.0` | `python -m scripts.main` |
-| `devkit build` | `python -m build` | `pip install -r requirements.txt` | `pip install -r requirements.txt` | `sam build` |
-| `devkit test` | `pytest -v` | `pytest -v` | `manage.py test` | `pytest -v` |
+| `devit dev` | `pip install -e .[dev]` | `uvicorn main:app --reload` | `manage.py runserver` | `sam local start-api` |
+| `devit run` | `python -m <module>` | `uvicorn main:app` | `manage.py runserver 0.0.0.0` | `python -m scripts.main` |
+| `devit build` | `python -m build` | `pip install -r requirements.txt` | `pip install -r requirements.txt` | `sam build` |
+| `devit test` | `pytest -v` | `pytest -v` | `manage.py test` | `pytest -v` |
 
 ```bash
-devkit dev
-devkit test
-devkit build
-devkit run -- --port 9000    # extra args forwarded
+devit dev
+devit test
+devit build
+devit run -- --port 9000    # extra args forwarded
 ```
 
 ---
 
-### `devkit clean` — Remove artifacts
+### `devit clean` — Remove artifacts
 
 ```bash
-devkit clean                  # clean cwd
-devkit clean ./my-project     # clean specific dir
-devkit clean --dry-run        # preview only
-devkit clean --include-venv   # also remove .venv
-devkit clean -y               # skip confirmation
+devit clean                  # clean cwd
+devit clean ./my-project     # clean specific dir
+devit clean --dry-run        # preview only
+devit clean --include-venv   # also remove .venv
+devit clean -y               # skip confirmation
 ```
 
 Removes: `__pycache__`, `*.pyc`, `.pytest_cache`, `build/`, `dist/`, `*.egg-info`, `.DS_Store`, `*.log`, `node_modules`, `.coverage`, and more.
 
 ---
 
-### `devkit info` — System snapshot
+### `devit info` — System snapshot
 
 ```bash
-devkit info
-devkit info --json
+devit info
+devit info --json
 ```
 
 Shows: OS, hostname, Python version + executable, active venv/conda env, CPU count + frequency, RAM usage, disk usage.
 
 ---
 
-### `devkit find` — Fast file search
+### `devit find` — Fast file search
 
 ```bash
-devkit find "*.py"
-devkit find "config" -e toml -e ini
-devkit find "*" --min-size 1mb --newer-than 7    # >1 MB, modified in last 7 days
-devkit find --dirs-only "src"
-devkit find "*" -l 500                           # show up to 500 results
+devit find "*.py"
+devit find "config" -e toml -e ini
+devit find "*" --min-size 1mb --newer-than 7    # >1 MB, modified in last 7 days
+devit find --dirs-only "src"
+devit find "*" -l 500                           # show up to 500 results
 ```
 
 ---
 
-### `devkit zip` / `devkit unzip` — Archive utilities
+### `devit zip` / `devit unzip` — Archive utilities
 
 ```bash
-devkit zip dist.zip src/ README.md
-devkit zip dist.zip . -x __pycache__ -x "*.pyc" -l 9
-devkit unzip dist.zip ./output
-devkit unzip dist.zip --list     # show contents without extracting
+devit zip dist.zip src/ README.md
+devit zip dist.zip . -x __pycache__ -x "*.pyc" -l 9
+devit unzip dist.zip ./output
+devit unzip dist.zip --list     # show contents without extracting
 ```
 
 ---
 
-### `devkit env` — Environment variable management
+### `devit env` — Environment variable management
 
 ```bash
-devkit env list                        # list all env vars
-devkit env list --filter AWS           # filter by keyword
-devkit env list --json                 # JSON output
+devit env list                        # list all env vars
+devit env list --filter AWS           # filter by keyword
+devit env list --json                 # JSON output
 
-devkit env export                      # save to .env  (dotenv format)
-devkit env export vars.json --format json
-devkit env export activate.sh  --format shell       # bash / zsh
-devkit env export activate.ps1 --format powershell  # Windows PowerShell
-devkit env export activate.bat --format cmd         # Windows CMD
+devit env export                      # save to .env  (dotenv format)
+devit env export vars.json --format json
+devit env export activate.sh  --format shell       # bash / zsh
+devit env export activate.ps1 --format powershell  # Windows PowerShell
+devit env export activate.bat --format cmd         # Windows CMD
 
-devkit env diff .env .env.production   # show what changed
+devit env diff .env .env.production   # show what changed
 ```
 
 ---
@@ -232,5 +232,6 @@ Pull requests are welcome!
 ## License
 
 MIT — see [LICENSE](https://github.com/dipenpadhiyar/devit-cli/blob/main/LICENSE) for details.
+
 
 
