@@ -276,10 +276,16 @@ def _copy_template(template_name: str, dest: Path, context: dict) -> None:
         if src.is_dir():
             dst.mkdir(parents=True, exist_ok=True)
         else:
-            text = src.read_text(encoding="utf-8")
-            for key, val in context.items():
-                text = text.replace("{{" + key + "}}", val)
-            _write_file(dst, text)
+            try:
+                text = src.read_text(encoding="utf-8")
+                for key, val in context.items():
+                    text = text.replace("{{" + key + "}}", val)
+                _write_file(dst, text)
+            except (UnicodeDecodeError, ValueError):
+                # Binary file (e.g. .pyc, images) — copy as-is
+                import shutil as _shutil
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                _shutil.copy2(src, dst)
 
 
 # ---------------------------------------------------------------------------
