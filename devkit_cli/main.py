@@ -16,6 +16,7 @@ from devkit_cli.commands.find import find
 from devkit_cli.commands.archive import zip_cmd, unzip_cmd
 from devkit_cli.commands.env import env
 from devkit_cli.commands.run import run, build, dev, test
+from devkit_cli.commands.deps import deps
 
 console = Console()
 
@@ -83,6 +84,7 @@ cli.add_command(run)
 cli.add_command(build)
 cli.add_command(dev)
 cli.add_command(test)
+cli.add_command(deps)
 
 
 if __name__ == "__main__":

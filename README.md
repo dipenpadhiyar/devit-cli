@@ -4,7 +4,7 @@
 
 <p align="center">
   <b>A full-featured CLI toolkit for professional Python developers.</b><br/>
-  Scaffold projects &nbsp;·&nbsp; Clean builds &nbsp;·&nbsp; Inspect system &nbsp;·&nbsp; Search files &nbsp;·&nbsp; Manage archives &amp; env vars
+  Scaffold projects &nbsp;·&nbsp; Clean builds &nbsp;·&nbsp; Inspect system &nbsp;·&nbsp; Search files &nbsp;·&nbsp; Manage archives &amp; env vars &nbsp;·&nbsp; Track &amp; rollback dependencies
 </p>
 
 <p align="center">
@@ -36,6 +36,7 @@ devit info      # system snapshot
 devit clean     # remove caches & build artifacts
 devit dev       # start dev server / install in dev mode
 devit test      # run tests (auto-detects pytest / django)
+devit deps      # manage, snapshot & rollback dependencies
 ```
 
 ---
@@ -202,6 +203,90 @@ devit env export activate.bat --format cmd         # Windows CMD
 
 devit env diff .env .env.production   # show what changed
 ```
+
+---
+
+### `devit deps` — Dependency manager with history & rollback
+
+Wraps `pip` with a clean interface, tracks dependency snapshots, and lets you roll back when an upgrade breaks things.
+
+#### Install & uninstall
+
+```bash
+devit deps add requests                   # install + save to requirements.txt
+devit deps add "flask>=3.0" sqlalchemy    # multiple packages
+devit deps add numpy --no-save           # install without touching requirements.txt
+devit deps remove flask                  # uninstall + remove from requirements.txt
+```
+
+#### Inspect
+
+```bash
+devit deps list                # list all installed packages in the project env
+devit deps list --json         # JSON output
+devit deps outdated            # show packages that have newer versions available
+devit deps outdated --json
+```
+
+#### Upgrade all at once
+
+```bash
+devit deps add .               # upgrade every outdated package & update requirements.txt
+```
+
+#### Snapshot history
+
+Save the current working state before making changes:
+
+```bash
+devit deps snapshot                        # save current packages
+devit deps snapshot -m "works with v3.0"  # save with a label
+devit deps history                         # list all saved snapshots
+```
+
+Example output of `devit deps history`:
+
+```
+┏━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━
+┃ ID  ┃ Message                   ┃ Packages ┃ Saved At
+┡━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━
+│ #2  │ works with v3.0           │       14 │ 2026-04-03T12:00:00
+│ #1  │ Snapshot #1               │       12 │ 2026-04-01T09:30:00
+```
+
+#### Diff — see what changed and spot issues
+
+```bash
+devit deps diff        # compare current env to latest snapshot
+devit deps diff 1      # compare to snapshot #1
+```
+
+Example output when an upgrade broke something:
+
+```
+ Diff: current  vs  Snapshot #1
+┏━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━
+┃ Package  ┃ Snapshot ┃ Current  ┃ Status
+┡━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━
+│ flask    │ 2.3.3    │ 3.1.0    │ ~changed
+│ werkzeug │ 2.3.7    │ —        │ -removed
+
+Issues detected:
+  • flask version changed  2.3.3 → 3.1.0
+  • werkzeug was removed (snapshot had 2.3.7)
+
+  Run devit deps rollback 1 to restore this snapshot.
+```
+
+#### Rollback — restore exact pinned versions
+
+```bash
+devit deps rollback        # restore latest snapshot
+devit deps rollback 1      # restore snapshot #1
+devit deps rollback 1 -y   # skip confirmation
+```
+
+Snapshots are stored in `.devit/dep_snapshots.json` inside your project directory.
 
 ---
 
