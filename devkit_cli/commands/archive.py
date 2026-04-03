@@ -79,20 +79,24 @@ def zip_cmd(output, sources, level, exclude):
 
     compress = zipfile.ZIP_DEFLATED if level > 0 else zipfile.ZIP_STORED
 
-    with Progress(
-        TextColumn("[bold blue]{task.description}"),
-        BarColumn(),
-        TaskProgressColumn(),
-        FileSizeColumn(),
-        TransferSpeedColumn(),
-        TimeRemainingColumn(),
-        console=console,
-    ) as progress:
-        task = progress.add_task("Compressing", total=total_size)
-        with zipfile.ZipFile(out_path, "w", compression=compress, compresslevel=level) as zf:
-            for fpath, arc_name in all_files:
-                zf.write(fpath, arc_name)
-                progress.advance(task, fpath.stat().st_size)
+    try:
+        with Progress(
+            TextColumn("[bold blue]{task.description}"),
+            BarColumn(),
+            TaskProgressColumn(),
+            FileSizeColumn(),
+            TransferSpeedColumn(),
+            TimeRemainingColumn(),
+            console=console,
+        ) as progress:
+            task = progress.add_task("Compressing", total=total_size)
+            with zipfile.ZipFile(out_path, "w", compression=compress, compresslevel=level) as zf:
+                for fpath, arc_name in all_files:
+                    zf.write(fpath, arc_name)
+                    progress.advance(task, fpath.stat().st_size)
+    except OSError as e:
+        console.print(f"[red]✗[/red] Failed to create archive: {e}")
+        raise click.Abort()
 
     final_size = out_path.stat().st_size
     ratio = (1 - final_size / total_size) * 100 if total_size else 0
@@ -149,18 +153,22 @@ def unzip_cmd(archive, destination, list_only):
         dest.mkdir(parents=True, exist_ok=True)
         total_size = sum(m.file_size for m in members if not m.is_dir())
 
-        with Progress(
-            TextColumn("[bold blue]{task.description}"),
-            BarColumn(),
-            TaskProgressColumn(),
-            FileSizeColumn(),
-            TimeRemainingColumn(),
-            console=console,
-        ) as progress:
-            task = progress.add_task("Extracting", total=total_size)
-            for member in members:
-                zf.extract(member, dest)
-                if not member.is_dir():
-                    progress.advance(task, member.file_size)
+        try:
+            with Progress(
+                TextColumn("[bold blue]{task.description}"),
+                BarColumn(),
+                TaskProgressColumn(),
+                FileSizeColumn(),
+                TimeRemainingColumn(),
+                console=console,
+            ) as progress:
+                task = progress.add_task("Extracting", total=total_size)
+                for member in members:
+                    zf.extract(member, dest)
+                    if not member.is_dir():
+                        progress.advance(task, member.file_size)
+        except OSError as e:
+            console.print(f"[red]✗[/red] Extraction failed: {e}")
+            raise click.Abort()
 
     console.print(f"[green]✔[/green] Extracted [bold]{len(members)}[/bold] items to [cyan]{dest}[/cyan]")

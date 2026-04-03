@@ -104,7 +104,14 @@ def _run_cmd(cmd: list[str], cwd: Path) -> None:
             f"  Make sure [cyan]{exe}[/cyan] is installed and on your PATH."
         )
         raise SystemExit(1)
-    result = subprocess.run(cmd, cwd=cwd)
+    try:
+        result = subprocess.run(cmd, cwd=cwd)
+    except FileNotFoundError:
+        console.print(
+            f"[red]Command not found:[/red] [bold]{cmd[0]}[/bold]\n"
+            f"  Make sure [cyan]{cmd[0]}[/cyan] is installed and on your PATH."
+        )
+        raise SystemExit(1)
     if result.returncode != 0:
         raise SystemExit(result.returncode)
 

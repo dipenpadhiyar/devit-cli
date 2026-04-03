@@ -50,7 +50,11 @@ def _create_venv(project_dir: Path, python_version: str) -> None:
     """Create a native venv inside project_dir."""
     with Progress(SpinnerColumn(), TextColumn("[bold green]Creating venv..."), transient=True) as p:
         p.add_task("")
-        _run([sys.executable, "-m", "venv", ".venv"], cwd=project_dir)
+        try:
+            _run([sys.executable, "-m", "venv", ".venv"], cwd=project_dir)
+        except subprocess.CalledProcessError as e:
+            console.print(f"[red]✗[/red] Failed to create virtual environment.\n  [dim]{e}[/dim]")
+            raise click.Abort()
     console.print("[green]✔[/green] Virtual environment created at [cyan].venv/[/cyan]")
 
 
@@ -62,7 +66,11 @@ def _create_conda_env(project_dir: Path, name: str, python_version: str) -> None
         return
     with Progress(SpinnerColumn(), TextColumn(f"[bold green]Creating conda env '{name}'..."), transient=True) as p:
         p.add_task("")
-        _run([conda_bin, "create", "-n", name, f"python={python_version}", "-y"])
+        try:
+            _run([conda_bin, "create", "-n", name, f"python={python_version}", "-y"])
+        except subprocess.CalledProcessError as e:
+            console.print(f"[red]✗[/red] Failed to create conda environment.\n  [dim]{e}[/dim]")
+            raise click.Abort()
     console.print(f"[green]✔[/green] Conda environment [cyan]{name}[/cyan] created.")
 
 
@@ -411,7 +419,11 @@ def init(project_name, project_type, env_type, python_version, target_dir, yes):
         if not overwrite:
             raise click.Abort()
     else:
-        project_dir.mkdir(parents=True)
+        try:
+            project_dir.mkdir(parents=True)
+        except PermissionError:
+            console.print(f"[red]✗[/red] Permission denied: cannot create [cyan]{project_dir}[/cyan]")
+            raise click.Abort()
 
     # --- scaffold ---
     ctx = {
@@ -429,7 +441,11 @@ def init(project_name, project_type, env_type, python_version, target_dir, yes):
         py_path = env_decision["python_path"]
         with Progress(SpinnerColumn(), TextColumn("[bold green]Creating .venv..."), transient=True) as p:
             p.add_task("")
-            _run([py_path, "-m", "venv", ".venv"], cwd=project_dir)
+            try:
+                _run([py_path, "-m", "venv", ".venv"], cwd=project_dir)
+            except subprocess.CalledProcessError as e:
+                console.print(f"[red]✗[/red] Failed to create virtual environment.\n  [dim]{e}[/dim]")
+                raise click.Abort()
         console.print("[green]✔[/green] Virtual environment created at [cyan].venv/[/cyan]")
     elif kind == "conda_new":
         _create_conda_env(project_dir, project_name, python_version)

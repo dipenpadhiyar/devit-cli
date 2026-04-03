@@ -14,7 +14,11 @@ console = Console()
 def _load_dotenv(path: Path) -> dict[str, str]:
     """Parse a .env file into a dict."""
     result = {}
-    for line in path.read_text(encoding="utf-8").splitlines():
+    try:
+        content = path.read_text(encoding="utf-8")
+    except OSError as e:
+        raise click.ClickException(f"Cannot read {path}: {e}")
+    for line in content.splitlines():
         line = line.strip()
         if not line or line.startswith("#"):
             continue
@@ -93,21 +97,25 @@ def env_export(output, filter_str, fmt):
 
     out = Path(output)
 
-    if fmt == "dotenv":
-        lines = [f'{k}="{v}"' for k, v in sorted(vars_dict.items())]
-        out.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    elif fmt == "json":
-        out.write_text(json.dumps(vars_dict, indent=2), encoding="utf-8")
-    elif fmt == "shell":
-        lines = [f"export {k}={json.dumps(v)}" for k, v in sorted(vars_dict.items())]
-        out.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    elif fmt == "powershell":
-        lines = [f'$env:{k} = {json.dumps(v)}' for k, v in sorted(vars_dict.items())]
-        out.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    elif fmt == "cmd":
-        # Values with special CMD characters are quoted; newlines replaced with space
-        lines = [f"set {k}={v.replace(chr(10), ' ')}" for k, v in sorted(vars_dict.items())]
-        out.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    try:
+        if fmt == "dotenv":
+            lines = [f'{k}="{v}"' for k, v in sorted(vars_dict.items())]
+            out.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        elif fmt == "json":
+            out.write_text(json.dumps(vars_dict, indent=2), encoding="utf-8")
+        elif fmt == "shell":
+            lines = [f"export {k}={json.dumps(v)}" for k, v in sorted(vars_dict.items())]
+            out.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        elif fmt == "powershell":
+            lines = [f'$env:{k} = {json.dumps(v)}' for k, v in sorted(vars_dict.items())]
+            out.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        elif fmt == "cmd":
+            # Values with special CMD characters are quoted; newlines replaced with space
+            lines = [f"set {k}={v.replace(chr(10), ' ')}" for k, v in sorted(vars_dict.items())]
+            out.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    except OSError as e:
+        console.print(f"[red]✗[/red] Cannot write to [bold]{out}[/bold]: {e}")
+        raise SystemExit(1)
 
     console.print(f"[green]✔[/green] Exported [bold]{len(vars_dict)}[/bold] variables to [cyan]{out}[/cyan]")
 

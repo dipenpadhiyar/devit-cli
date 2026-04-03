@@ -60,10 +60,26 @@ def find(pattern, search_dir, ext, min_size, max_size, newer_than, older_than, l
       devkit find --dirs-only "src"
     """
     root = Path(search_dir).resolve()
-    min_bytes = _parse_size(min_size) if min_size else None
-    max_bytes = _parse_size(max_size) if max_size else None
-    newer_cutoff = (datetime.now() - timedelta(days=int(newer_than))).timestamp() if newer_than else None
-    older_cutoff = (datetime.now() - timedelta(days=int(older_than))).timestamp() if older_than else None
+    try:
+        min_bytes = _parse_size(min_size) if min_size else None
+    except (ValueError, TypeError):
+        console.print(f"[red]✗[/red] Invalid --min-size value: [bold]{min_size}[/bold]  (example: 10kb, 2mb)")
+        raise SystemExit(1)
+    try:
+        max_bytes = _parse_size(max_size) if max_size else None
+    except (ValueError, TypeError):
+        console.print(f"[red]✗[/red] Invalid --max-size value: [bold]{max_size}[/bold]  (example: 10kb, 2mb)")
+        raise SystemExit(1)
+    try:
+        newer_cutoff = (datetime.now() - timedelta(days=int(newer_than))).timestamp() if newer_than else None
+    except (ValueError, TypeError):
+        console.print(f"[red]✗[/red] --newer-than must be a whole number of days, got: [bold]{newer_than}[/bold]")
+        raise SystemExit(1)
+    try:
+        older_cutoff = (datetime.now() - timedelta(days=int(older_than))).timestamp() if older_than else None
+    except (ValueError, TypeError):
+        console.print(f"[red]✗[/red] --older-than must be a whole number of days, got: [bold]{older_than}[/bold]")
+        raise SystemExit(1)
 
     table = Table(title=f"Search: [cyan]{pattern}[/cyan] in [dim]{root}[/dim]",
                   show_lines=False, expand=False)
