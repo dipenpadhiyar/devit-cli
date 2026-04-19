@@ -1,5 +1,8 @@
 """devkit run / build / dev / test — Unified task runner (auto-detects project type)."""
 
+import ast
+import os
+import re
 import shutil
 import subprocess
 import sys
@@ -35,8 +38,73 @@ def _detect_project_type(root: Path) -> str | None:
     return None
 
 
+def _detect_fastapi_app(file_path: Path) -> str | None:
+    """Auto-detect FastAPI app instance name by parsing the Python file.
+    
+    Returns app name like 'app', 'application', 'server', or None if not found.
+    """
+    if not file_path.exists():
+        return None
+    
+    try:
+        tree = ast.parse(file_path.read_text(encoding="utf-8", errors="ignore"))
+    except SyntaxError:
+        return None
+    
+    # Look for: var = FastAPI() or var = FastAPI(...) 
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    var_name = target.id
+                    # Check if assignment is FastAPI(...)
+                    if isinstance(node.value, ast.Call):
+                        if isinstance(node.value.func, ast.Name):
+                            if node.value.func.id == "FastAPI":
+                                return var_name
+                        # Handle from fastapi import FastAPI; app = FastAPI()
+                        elif isinstance(node.value.func, ast.Attribute):
+                            if node.value.func.attr == "FastAPI":
+                                return var_name
+    
+    # Fallback: look for common patterns in the text
+    content = file_path.read_text(encoding="utf-8", errors="ignore")
+    # Match: app/application/server/etc = FastAPI()
+    match = re.search(r'(\w+)\s*=\s*FastAPI\s*\(', content)
+    if match:
+        return match.group(1)
+    
+    return None
+
+
+def _find_fastapi_entry(root: Path) -> str | None:
+    """Find FastAPI entry point in project.
+    
+    Returns 'module:app_name' or None if not found.
+    """
+    candidates = [
+        root / "main.py",
+        root / "app.py",
+        root / "server.py",
+        root / "api.py",
+    ]
+    
+    for file_path in candidates:
+        app_name = _detect_fastapi_app(file_path)
+        if app_name:
+            return f"{file_path.stem}:{app_name}"
+    
+    return None
+
+
 def _venv_python(root: Path) -> str:
-    """Return path to venv python if .venv exists, else sys.executable."""
+    """Return path to venv python.
+
+    Priority:
+    1. A .venv folder inside the project root.
+    2. The currently activated virtual environment (VIRTUAL_ENV env var).
+    3. sys.executable as a last resort.
+    """
     venv = root / ".venv"
     if venv.exists():
         win_py = venv / "Scripts" / "python.exe"
@@ -45,6 +113,23 @@ def _venv_python(root: Path) -> str:
             return str(win_py)
         if unix_py.exists():
             return str(unix_py)
+
+    # Respect whatever environment the user has activated in the shell.
+    # - Regular venv/virtualenv sets VIRTUAL_ENV
+    # - Conda sets CONDA_PREFIX
+    for env_var in ("VIRTUAL_ENV", "CONDA_PREFIX"):
+        active_env = os.environ.get(env_var)
+        if active_env:
+            candidates = [
+                Path(active_env) / "Scripts" / "python.exe",  # venv on Windows
+                Path(active_env) / "bin" / "python",           # venv on Unix
+                Path(active_env) / "python.exe",               # conda on Windows (root of env)
+                Path(active_env) / "python",                   # conda on Unix
+            ]
+            for candidate in candidates:
+                if candidate.exists():
+                    return str(candidate)
+
     return sys.executable
 
 
@@ -120,7 +205,7 @@ def _run_cmd(cmd: list[str], cwd: Path) -> None:
 # Per-project-type handlers
 # ---------------------------------------------------------------------------
 
-def _get_handlers(project_type: str, root: Path, py: str) -> dict[str, list[str] | None]:
+def _get_handlers(project_type: str, root: Path, py: str, fastapi_app: str | None = None) -> dict[str, list[str] | None]:
     django_manage = [py, "manage.py"]
     sam = "sam"
 
@@ -131,14 +216,12 @@ def _get_handlers(project_type: str, root: Path, py: str) -> dict[str, list[str]
     uvicorn = [py, "-m", "uvicorn"]
     build   = [py, "-m", "build"]
 
-    # Detect entry-point for fastapi (main:app, app:app, etc.)
-    app_module = "main:app"
-    for candidate in ("main.py", "app.py", "server.py", "api.py"):
-        if (root / candidate).exists():
-            app_module = f"{Path(candidate).stem}:app"
-            break
-
+    # Detect FastAPI entry-point dynamically
     if project_type == "fastapi":
+        app_module = fastapi_app or _find_fastapi_entry(root) or "main:app"
+        if not fastapi_app:
+            console.print(f"[dim]FastAPI entry point:[/dim] [bold cyan]{app_module}[/bold cyan]")
+
         return {
             "dev":   uvicorn + [app_module, "--reload", "--host", "127.0.0.1", "--port", "8000"],
             "run":   uvicorn + [app_module, "--host", "0.0.0.0", "--port", "8000"],
@@ -179,7 +262,7 @@ def _get_handlers(project_type: str, root: Path, py: str) -> dict[str, list[str]
 # Shared task runner
 # ---------------------------------------------------------------------------
 
-def _run_task(task: str, extra_args: tuple, project_dir: str | None) -> None:
+def _run_task(task: str, extra_args: tuple, project_dir: str | None, fastapi_app: str | None = None) -> None:
     root = Path(project_dir).resolve() if project_dir else Path.cwd()
     project_type = _detect_project_type(root)
 
@@ -195,7 +278,7 @@ def _run_task(task: str, extra_args: tuple, project_dir: str | None) -> None:
     if task in ("run", "dev", "test"):
         _ensure_deps(project_type, py, root)
 
-    handlers = _get_handlers(project_type, root, py)
+    handlers = _get_handlers(project_type, root, py, fastapi_app=fastapi_app)
     cmd = handlers.get(task)
 
     if cmd is None:
@@ -214,9 +297,14 @@ def _run_task(task: str, extra_args: tuple, project_dir: str | None) -> None:
 @click.command()
 @click.argument("extra_args", nargs=-1)
 @click.option("--dir", "project_dir", default=None, help="Project root (default: cwd).")
-def run(extra_args, project_dir):
-    """Run the project (production mode)."""
-    _run_task("run", extra_args, project_dir)
+@click.option("--app", "fastapi_app", default=None, help="FastAPI app entry point (e.g. 'main:app' or 'app:server').")
+def run(extra_args, project_dir, fastapi_app):
+    """Run the project (production mode).
+    
+    For FastAPI: auto-detects app instance, or use --app to override.
+    Example: devit run --app main:server
+    """
+    _run_task("run", extra_args, project_dir, fastapi_app=fastapi_app)
 
 
 @click.command()
@@ -230,9 +318,14 @@ def build(extra_args, project_dir):
 @click.command()
 @click.argument("extra_args", nargs=-1)
 @click.option("--dir", "project_dir", default=None, help="Project root (default: cwd).")
-def dev(extra_args, project_dir):
-    """Start the project in development / watch mode."""
-    _run_task("dev", extra_args, project_dir)
+@click.option("--app", "fastapi_app", default=None, help="FastAPI app entry point (e.g. 'main:app' or 'app:server').")
+def dev(extra_args, project_dir, fastapi_app):
+    """Start the project in development / watch mode.
+    
+    For FastAPI: auto-detects app instance, or use --app to override.
+    Example: devit dev --app main:server
+    """
+    _run_task("dev", extra_args, project_dir, fastapi_app=fastapi_app)
 
 
 @click.command()
